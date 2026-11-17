@@ -7,6 +7,7 @@ C) Golden sets — hand-curated JSONL files
 """
 
 import json
+import os
 import random
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -123,7 +124,11 @@ class SyntheticDatasetBuilder:
         n = num_cases or self.config.eval_dataset_size
 
         # Configure DSPy to use the judge model for generation
-        lm = dspy.LM(self.config.judge_model)
+        lm = dspy.LM(
+            self.config.judge_model,
+            api_base=os.environ.get("HERMES_LLM_GATEWAY", "http://localhost:6655/litellm/v1"),
+            api_key=os.environ.get("HERMES_LLM_GATEWAY_KEY", os.environ.get("OPENAI_API_KEY", "")),
+        )
 
         with dspy.context(lm=lm):
             result = self.generator(

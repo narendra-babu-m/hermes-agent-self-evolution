@@ -4,6 +4,8 @@ Uses LLM-as-judge with rubrics to score agent outputs.
 Supports length penalties and multi-dimensional scoring.
 """
 
+import os
+
 import dspy
 from dataclasses import dataclass
 from typing import Optional
@@ -72,7 +74,11 @@ class LLMJudge:
     ) -> FitnessScore:
         """Score an agent output using LLM-as-judge."""
 
-        lm = dspy.LM(self.config.eval_model)
+        lm = dspy.LM(
+            self.config.eval_model,
+            api_base=os.environ.get("HERMES_LLM_GATEWAY", "http://localhost:6655/litellm/v1"),
+            api_key=os.environ.get("HERMES_LLM_GATEWAY_KEY", os.environ.get("OPENAI_API_KEY", "")),
+        )
 
         with dspy.context(lm=lm):
             result = self.judge(

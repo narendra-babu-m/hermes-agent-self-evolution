@@ -6,6 +6,7 @@ Usage:
 """
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -136,8 +137,10 @@ def evolve(
     console.print(f"  Optimizer model: {optimizer_model}")
     console.print(f"  Eval model: {eval_model}")
 
-    # Configure DSPy
-    lm = dspy.LM(eval_model)
+    # Configure DSPy — route through local litellm gateway (SAP AI Core)
+    gateway_base = os.environ.get("HERMES_LLM_GATEWAY", "http://localhost:6655/litellm/v1")
+    gateway_key = os.environ.get("HERMES_LLM_GATEWAY_KEY", os.environ.get("OPENAI_API_KEY", ""))
+    lm = dspy.LM(eval_model, api_base=gateway_base, api_key=gateway_key)
     dspy.configure(lm=lm)
 
     # Create the baseline skill module
